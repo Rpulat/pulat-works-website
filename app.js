@@ -91,9 +91,12 @@
     world.style.transform=`translate3d(${cameraX.toFixed(2)}px,${cameraY.toFixed(2)}px,${displayCam.toFixed(2)}px) rotateX(${cameraTilt.toFixed(2)}deg)`;
     let nearest=0,nearestAbs=1e9;
     stops.forEach((s,i)=>{
+      const ad=Math.abs(Number(s.dataset.z)+displayCam);
+      if(ad<nearestAbs){nearestAbs=ad;nearest=i;}
+    });
+    stops.forEach((s,i)=>{
       const rel=Number(s.dataset.z)+displayCam;
       const ad=Math.abs(rel);
-      if(ad<nearestAbs){nearestAbs=ad;nearest=i;}
       // Tighter visibility window fixes neighboring-scene clipping/bleed.
       const proximity=clamp(1-ad/720);
       const behind = rel>240 ? clamp(1-(rel-240)/300) : 1;
