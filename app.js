@@ -6,6 +6,11 @@
   const stops=[...document.querySelectorAll('.stop')];
   const zObjects=[...document.querySelectorAll('[data-z]')];
   if(!flight || !world || !ctx || stops.length!==6) return;
+  // The transformed 3D stage is visual-only. On desktop Chromium its plane can
+  // otherwise win hit-testing over visible controls. Active stops opt back in
+  // below, preserving the flight effect while restoring real pointer targets.
+  world.style.pointerEvents='none';
+  world.parentElement.style.pointerEvents='none';
   const stopZ=stops.map(s=>Number(s.dataset.z));
   // FINAL STOP IS THE END. No overshoot beyond the contact page.
   const finalCamera=Math.abs(stopZ[stopZ.length-1]);
