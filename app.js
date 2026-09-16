@@ -46,13 +46,39 @@
     const g=clamp(Math.abs(stopZ[i])/finalCamera);
     scrollTo({top:g*max,behavior:'smooth'});
   }
+  function activeControlAt(x,y){
+    const active=stops.find(s=>s.style.pointerEvents==='auto');
+    if(!active) return null;
+    const controls=[...active.querySelectorAll('a[href],button,[data-stop]')].reverse();
+    return controls.find(el=>{
+      const r=el.getBoundingClientRect();
+      const style=getComputedStyle(el);
+      return style.visibility!=='hidden' && Number(style.opacity)!==0 &&
+        x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+    })||null;
+  }
   document.addEventListener('click',e=>{
-    const el=e.target.closest('[data-stop]');
+    let el=e.target.closest('[data-stop],a[href],button');
+    let geometricFallback=false;
+    if(!el){
+      el=activeControlAt(e.clientX,e.clientY);
+      geometricFallback=Boolean(el);
+    }
     if(!el) return;
-    const target=Number(el.dataset.stop);
-    if(!Number.isFinite(target) || target<0 || target>=stops.length) return;
-    e.preventDefault();
-    go(target);
+    const stopControl=el.closest('[data-stop]');
+    if(stopControl){
+      const target=Number(stopControl.dataset.stop);
+      if(!Number.isFinite(target) || target<0 || target>=stops.length) return;
+      e.preventDefault();
+      go(target);
+      return;
+    }
+    // Chromium can report the canvas as the hit target on a translated 3D
+    // plane. Re-dispatch the click to the visible active link in that case.
+    if(geometricFallback && el.matches('a[href]')){
+      e.preventDefault();
+      el.click();
+    }
   },true);
   let lastScroll=scrollY,velocity=0,displayCam=0;
   let finalLocked=false;
